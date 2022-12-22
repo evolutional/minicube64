@@ -174,6 +174,24 @@ void next_view()
 	debug_view++;
 }
 
+void update_gif() {
+	uint32_t i=0;
+	for (int y=0;y<64*MACHINE_SCALE;y++)
+	{
+		for (int x=0;x<64*MACHINE_SCALE;x++)
+		{
+			uint32_t p = mfb_getpix_final(x,y);
+			uint8_t r = p & 0xFF;
+			uint8_t g = p >> 8 & 0xFF;
+			uint8_t b = p >> 16 & 0xFF;
+			uint8_t a = p >> 24 & 0xFF;
+			gif_frame[i] = b | g << 8 | r << 16 | a << 24;
+			i++;
+		}
+	}
+	msf_gif_frame(&gifState,(uint8_t*)&gif_frame[0], 2, 32, (64*MACHINE_SCALE)*4);
+}
+
 void display_machine()
 {
 	int i=0;
@@ -271,21 +289,7 @@ void display_machine()
 	//	save gif
 	if (vramblock!=0)
 	{
-		i=0;
-		for (int y=0;y<64*MACHINE_SCALE;y++)
-		{
-			for (int x=0;x<64*MACHINE_SCALE;x++)
-			{
-				uint32_t p = mfb_getpix(x,y);
-				uint8_t r = p & 0xFF;
-				uint8_t g = p >> 8 & 0xFF;
-				uint8_t b = p >> 16 & 0xFF;
-				uint8_t a = p >> 24 & 0xFF;
-				gif_frame[i] = b | g << 8 | r << 16 | a << 24;
-				i++;
-			}
-		}
-		msf_gif_frame(&gifState,(uint8_t*)&gif_frame[0], 2, 32, (64*MACHINE_SCALE)*4);
+		//
 	}
 
 	if ((status & FLAG_INTERRUPT)==0)

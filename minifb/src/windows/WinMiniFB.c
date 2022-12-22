@@ -7,6 +7,13 @@
 #endif
 #include <stdio.h>
 #include <stdlib.h>
+
+#if !defined(USER_DEFAULT_SCREEN_DPI)
+    #define USER_DEFAULT_SCREEN_DPI 96
+#endif
+#if !defined(WM_MOUSEHWHEEL)
+    #define WM_MOUSEHWHEEL                  0x020E
+#endif
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Copied (and modified) from Windows Kit 10 to avoid setting _WIN32_WINNT to a higher version

@@ -7,9 +7,25 @@
 #include "WindowData.h"
 #include <MiniFB_internal.h>
 
+extern uint32_t *g_crt_buffer;
 extern uint32_t *g_buffer;
 extern uint32_t g_width;
 extern uint32_t g_height;
+
+uint32_t mfb_getpix_final(int x,int y)
+{
+	unsigned int *buffer;
+  buffer = g_crt_buffer;
+	if (buffer!=NULL)
+	{
+		if ((x>=0) && (x<g_width) && 
+				(y>=0) && (y<g_height))
+		{
+			return (buffer[x+(y*g_width)]);
+		}
+	}
+	return 0;
+}
 
 uint32_t mfb_getpix(int x,int y)
 {

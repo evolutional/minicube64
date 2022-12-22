@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include "crt.h"
 #include "machine.h"
 #include "fake6502.h"
 #include "WindowData.h"
@@ -10,6 +11,10 @@
 uint32_t  g_width  = 64*MACHINE_SCALE;
 uint32_t  g_height = 64*MACHINE_SCALE;
 uint32_t *g_buffer = 0x0;
+uint32_t *g_crt_buffer = 0x0;
+int g_crt_field = 0x0;
+uint32_t g_crt_noise = 24;
+struct CRT g_crt = {0};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static int CalcScale(int bmpW, int bmpH, int areaW, int areaH)
@@ -97,6 +102,29 @@ int ox,oy;
 	mfb_set_viewport(window, ox, oy, iw,ih );
 }
 
+void crt_update() {
+	g_crt_field = (g_crt_field+1) & 0x01;
+
+	// fade phosphurs
+    for (uint32_t i = 0; i < g_width * g_height; i++) {
+        uint32_t c = g_buffer[i] & 0xffffff;
+        g_buffer[i] = (c >> 1 & 0x7f7f7f) +
+               (c >> 2 & 0x3f3f3f) +
+               (c >> 3 & 0x1f1f1f) +
+               (c >> 4 & 0x0f0f0f);
+    }
+
+	struct NTSC_SETTINGS settings;
+	settings.w = g_width;
+	settings.h = g_height;
+	settings.rgb = g_buffer;
+	settings.as_color = 1;
+	settings.field = g_crt_field;
+
+	crt_2ntsc(&g_crt, &settings);
+	crt_draw(&g_crt, g_crt_noise);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc,char **argv)
@@ -107,7 +135,10 @@ int main(int argc,char **argv)
 
     mfb_set_keyboard_callback(window, keyboard);
 
+	g_crt_buffer = (uint32_t *) malloc(g_width * g_height * 4);
     g_buffer = (uint32_t *) malloc(g_width * g_height * 4);
+	crt_init(&g_crt, g_width, g_height, g_crt_buffer);
+
     mfb_set_resize_callback(window, resize);
 
     resize(window, g_width*3, g_height*3);  // to resize buffer
@@ -122,7 +153,11 @@ int main(int argc,char **argv)
     mfb_update_state state;
     do {
         display_machine();
-        state = mfb_update_ex(window, g_buffer, g_width, g_height);
+		crt_update();
+		// moved gif update here so it picks up crt
+		update_gif();
+		
+        state = mfb_update_ex(window, g_crt_buffer, g_width, g_height);
         if (state != STATE_OK) {
             window = 0x0;
             break;

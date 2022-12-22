@@ -7,7 +7,8 @@ SRC_MAIN  := main.c \
 	assembler/asm6f.c \
 	machine/machine.c \
 	apu/wsg.c \
-	apu/nes_apu.c
+	apu/nes_apu.c \
+	crt/crt.c
 
 # Source code location of minifb library.
 SRC_MINIFB := \
@@ -26,7 +27,8 @@ INC_DIRS := \
 	machine \
 	utils \
 	minifb/include \
-	minifb/src
+	minifb/src \
+	crt
 
 # Compiler and linker configuration.
 CC             := gcc
